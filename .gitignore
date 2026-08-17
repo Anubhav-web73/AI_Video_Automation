@@ -1,0 +1,14 @@
+*.mp4
+*.mkv
+*.mov
+
+input/
+output/
+processed/
+failed/
+
+.DS_Store
+._*
+
+__pycache__/
+*.pyc
