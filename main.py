@@ -1,5 +1,7 @@
+
 import os
 import subprocess
+
 
 INPUT_FOLDER = "/Volumes/abcd/ai video automation data/input"
 OUTPUT_FOLDER = "/Volumes/abcd/ai video automation data/output"
@@ -75,6 +77,7 @@ for file in os.listdir(INPUT_FOLDER):
     if file.startswith("._"):
         continue
 
+    # Only process supported video files
     if not file.lower().endswith((".mp4", ".mkv", ".mov")):
         continue
 
@@ -99,13 +102,29 @@ for file in os.listdir(INPUT_FOLDER):
         input_file
     ]
 
-    duration = float(subprocess.check_output(duration_cmd))
+    try:
+        duration = float(
+            subprocess.check_output(duration_cmd)
+        )
+    except Exception as error:
+        print(f"FAILED: Could not read video duration: {error}")
+
+        failed_count += 1
+
+        os.rename(
+            input_file,
+            os.path.join(FAILED_FOLDER, file)
+        )
+
+        continue
 
     minutes = int(duration // 60)
     seconds = int(duration % 60)
 
     # Calculate number of clips
-    total_parts = int((duration + CLIP_DURATION - 1) // CLIP_DURATION)
+    total_parts = int(
+        (duration + CLIP_DURATION - 1) // CLIP_DURATION
+    )
 
     print(f"Duration: {minutes:02d}:{seconds:02d}")
     print(f"Total parts: {total_parts}")
@@ -123,7 +142,40 @@ for file in os.listdir(INPUT_FOLDER):
             f"{name}_PART_{part}.mp4"
         )
 
-        print(f"[{part}/{total_parts}] Creating PART {part}...")
+        # -------------------------------------------------
+        # TASK 3: Check existing output before processing
+        # -------------------------------------------------
+
+        if os.path.exists(output_file):
+
+            valid, message = validate_output(output_file)
+
+            if valid:
+
+                completed_parts += 1
+
+                print(
+                    f"[{part}/{total_parts}] "
+                    f"✓ Already exists — {message}"
+                )
+
+                continue
+
+            else:
+
+                print(
+                    f"[{part}/{total_parts}] "
+                    f"Existing file invalid — regenerating"
+                )
+
+        # -------------------------------------------------
+        # Create the clip
+        # -------------------------------------------------
+
+        print(
+            f"[{part}/{total_parts}] "
+            f"Creating PART {part}..."
+        )
 
         command = [
             FFMPEG,
@@ -168,10 +220,17 @@ for file in os.listdir(INPUT_FOLDER):
 
         if result.returncode != 0:
 
-            print(f"[{part}/{total_parts}] ✗ FFmpeg failed")
+            print(
+                f"[{part}/{total_parts}] "
+                f"✗ FFmpeg failed"
+            )
 
             success = False
             break
+
+        # -------------------------------------------------
+        # Validate newly created clip
+        # -------------------------------------------------
 
         valid, message = validate_output(output_file)
 
@@ -192,13 +251,17 @@ for file in os.listdir(INPUT_FOLDER):
             f"✓ Complete — {message}"
         )
 
-    if success:
+    # -----------------------------------------------------
+    # Move original only when ALL clips succeeded
+    # -----------------------------------------------------
+
+    if success and completed_parts == total_parts:
 
         success_count += 1
 
         print()
         print(f"SUCCESS: {file}")
-        print(f"Created {completed_parts} clips")
+        print(f"Created/verified {completed_parts} clips")
 
         os.rename(
             input_file,
