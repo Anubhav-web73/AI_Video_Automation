@@ -22,6 +22,53 @@ success_count = 0
 failed_count = 0
 
 
+def validate_output(output_file):
+    """Check whether the generated video is valid."""
+
+    if not os.path.exists(output_file):
+        return False, "Output file does not exist"
+
+    if os.path.getsize(output_file) == 0:
+        return False, "Output file is empty"
+
+    probe_command = [
+        FFPROBE,
+        "-v",
+        "error",
+        "-show_entries",
+        "stream=codec_type",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        output_file
+    ]
+
+    try:
+        result = subprocess.run(
+            probe_command,
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode != 0:
+            return False, "FFprobe could not read the output"
+
+        streams = result.stdout.strip().splitlines()
+
+        has_video = "video" in streams
+        has_audio = "audio" in streams
+
+        if not has_video:
+            return False, "No video stream found"
+
+        if not has_audio:
+            return False, "No audio stream found"
+
+        return True, "Valid video and audio"
+
+    except Exception as error:
+        return False, f"Validation error: {error}"
+
+
 for file in os.listdir(INPUT_FOLDER):
 
     # Ignore Mac hidden files
@@ -121,15 +168,29 @@ for file in os.listdir(INPUT_FOLDER):
 
         if result.returncode != 0:
 
-            print(f"[{part}/{total_parts}] FAILED")
+            print(f"[{part}/{total_parts}] ✗ FFmpeg failed")
+
+            success = False
+            break
+
+        valid, message = validate_output(output_file)
+
+        if not valid:
+
+            print(
+                f"[{part}/{total_parts}] "
+                f"✗ Validation failed: {message}"
+            )
 
             success = False
             break
 
         completed_parts += 1
 
-        print(f"[{part}/{total_parts}] ✓ Complete")
-
+        print(
+            f"[{part}/{total_parts}] "
+            f"✓ Complete — {message}"
+        )
 
     if success:
 
