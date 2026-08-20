@@ -226,7 +226,7 @@ for file in os.listdir(INPUT_FOLDER):
             )
 
             success = False
-            break
+            continue
 
         # -------------------------------------------------
         # Validate newly created clip
@@ -242,7 +242,7 @@ for file in os.listdir(INPUT_FOLDER):
             )
 
             success = False
-            break
+            continue
 
         completed_parts += 1
 
