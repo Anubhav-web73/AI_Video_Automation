@@ -277,11 +277,37 @@ for file in os.listdir(INPUT_FOLDER):
         print()
         print(f"FAILED: {file}")
 
+        # -------------------------------------------------
+        # Remove partial output clips
+        # -------------------------------------------------
+
+        print("Cleaning up partial output clips...")
+
+        for part in range(1, total_parts + 1):
+
+            output_file = os.path.join(
+                OUTPUT_FOLDER,
+                f"{name}_PART_{part}.mp4"
+            )
+
+            if os.path.exists(output_file):
+
+                os.remove(output_file)
+
+                print(
+                    f"Removed: {os.path.basename(output_file)}"
+                )
+
+        # -------------------------------------------------
+        # Move original to failed folder
+        # -------------------------------------------------
+
         os.rename(
             input_file,
             os.path.join(FAILED_FOLDER, file)
         )
 
+        print("Original moved to failed")
 
 print("\n" + "=" * 50)
 print("PROCESSING SUMMARY")
