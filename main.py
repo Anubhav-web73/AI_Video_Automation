@@ -215,7 +215,9 @@ for file in os.listdir(INPUT_FOLDER):
 
         result = subprocess.run(
             command,
-            stdout=subprocess.DEVNULL
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True
         )
 
         if result.returncode != 0:
@@ -224,6 +226,13 @@ for file in os.listdir(INPUT_FOLDER):
                 f"[{part}/{total_parts}] "
                 f"✗ FFmpeg failed"
             )
+
+            print("FFmpeg error:")
+
+            if result.stderr.strip():
+                print(result.stderr.strip())
+            else:
+                print("No FFmpeg error message was returned.")
 
             success = False
             continue
