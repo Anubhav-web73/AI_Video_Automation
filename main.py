@@ -38,9 +38,9 @@ def validate_output(output_file):
         "-v",
         "error",
         "-show_entries",
-        "stream=codec_type",
+        "stream=codec_type,width,height:format=duration",
         "-of",
-        "default=noprint_wrappers=1:nokey=1",
+        "default=noprint_wrappers=1",
         output_file
     ]
 
@@ -54,10 +54,10 @@ def validate_output(output_file):
         if result.returncode != 0:
             return False, "FFprobe could not read the output"
 
-        streams = result.stdout.strip().splitlines()
+        metadata = result.stdout.strip().splitlines()
 
-        has_video = "video" in streams
-        has_audio = "audio" in streams
+        has_video = any("video" in item for item in metadata)
+        has_audio = any("audio" in item for item in metadata)
 
         if not has_video:
             return False, "No video stream found"
@@ -65,7 +65,27 @@ def validate_output(output_file):
         if not has_audio:
             return False, "No audio stream found"
 
-        return True, "Valid video and audio"
+        duration_found = False
+        resolution_found = False
+
+        for item in metadata:
+
+            if item.startswith("duration="):
+                duration = float(item.split("=")[1])
+                if duration > 0:
+                    duration_found = True
+
+            if item.startswith("width=") or item.startswith("height="):
+                resolution_found = True
+
+
+        if not duration_found:
+            return False, "Invalid video duration"
+
+        if not resolution_found:
+            return False, "Invalid video resolution"
+
+        return True, "Valid video, audio, duration and resolution"
 
     except Exception as error:
         return False, f"Validation error: {error}"
