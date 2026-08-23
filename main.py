@@ -213,42 +213,75 @@ for file in os.listdir(INPUT_FOLDER):
             output_file
         ]
 
-        result = subprocess.run(
-            command,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True
-        )
+        # -------------------------------------------------
+        # Run FFmpeg with automatic retries
+        # -------------------------------------------------
 
-        if result.returncode != 0:
+        max_attempts = 3
+        clip_success = False
+
+        for attempt in range(1, max_attempts + 1):
 
             print(
                 f"[{part}/{total_parts}] "
-                f"✗ FFmpeg failed"
+                f"Attempt {attempt}/{max_attempts}..."
             )
 
-            print("FFmpeg error:")
+            result = subprocess.run(
+                command,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True
+            )
 
-            if result.stderr.strip():
-                print(result.stderr.strip())
-            else:
-                print("No FFmpeg error message was returned.")
+            if result.returncode != 0:
 
-            success = False
-            continue
+                print(
+                    f"[{part}/{total_parts}] "
+                    f"✗ FFmpeg failed on attempt {attempt}"
+                )
 
-        # -------------------------------------------------
-        # Validate newly created clip
-        # -------------------------------------------------
+                if result.stderr.strip():
+                    print(result.stderr.strip())
 
-        valid, message = validate_output(output_file)
+                if attempt < max_attempts:
+                    print("Retrying...")
+                    continue
 
-        if not valid:
+                print("All FFmpeg attempts failed.")
+                break
+
+            # -------------------------------------------------
+            # Validate newly created clip
+            # -------------------------------------------------
+
+            valid, message = validate_output(output_file)
+
+            if not valid:
+
+                print(
+                    f"[{part}/{total_parts}] "
+                    f"✗ Validation failed on attempt {attempt}: "
+                    f"{message}"
+                )
+
+                if attempt < max_attempts:
+                    print("Retrying...")
+                    continue
+
+                print("All attempts failed validation.")
+                break
+
+            clip_success = True
 
             print(
                 f"[{part}/{total_parts}] "
-                f"✗ Validation failed: {message}"
+                f"✓ Complete — {message}"
             )
+
+            break
+
+        if not clip_success:
 
             success = False
             continue
