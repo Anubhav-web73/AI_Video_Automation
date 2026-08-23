@@ -163,7 +163,7 @@ for file in os.listdir(INPUT_FOLDER):
         )
 
         # -------------------------------------------------
-        # TASK 3: Check existing output before processing
+        # TASK 5: Smart resume - check existing output before processing
         # -------------------------------------------------
 
         if os.path.exists(output_file):
