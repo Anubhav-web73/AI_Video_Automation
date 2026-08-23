@@ -220,11 +220,17 @@ for file in os.listdir(INPUT_FOLDER):
         max_attempts = 3
         clip_success = False
 
+        progress = int((part / total_parts) * 100)
+
+        print(
+            f"\n[Clip {part}/{total_parts} | {progress}%] Starting..."
+        )
+
         for attempt in range(1, max_attempts + 1):
 
             print(
-                f"[{part}/{total_parts}] "
-                f"Attempt {attempt}/{max_attempts}..."
+                f"[Clip {part}/{total_parts}] "
+                f"Attempt {attempt}/{max_attempts}"
             )
 
             result = subprocess.run(
@@ -275,8 +281,8 @@ for file in os.listdir(INPUT_FOLDER):
             clip_success = True
 
             print(
-                f"[{part}/{total_parts}] "
-                f"✓ Complete — {message}"
+                f"[Clip {part}/{total_parts}] "
+                f"✓ Completed — {message}"
             )
 
             break
