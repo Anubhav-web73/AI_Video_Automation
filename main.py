@@ -1,12 +1,21 @@
 
 import os
 import subprocess
+from datetime import datetime
 
 
 INPUT_FOLDER = "/Volumes/abcd/ai video automation data/input"
 OUTPUT_FOLDER = "/Volumes/abcd/ai video automation data/output"
 PROCESSED_FOLDER = "/Volumes/abcd/ai video automation data/processed"
 FAILED_FOLDER = "/Volumes/abcd/ai video automation data/failed"
+LOG_FOLDER = "/Volumes/abcd/ai video automation data/logs"
+
+os.makedirs(LOG_FOLDER, exist_ok=True)
+
+LOG_FILE = os.path.join(
+    LOG_FOLDER,
+    f"process_{datetime.now().strftime('%Y-%m-%d')}.log"
+)
 
 CLIP_DURATION = 60
 
@@ -90,6 +99,16 @@ def validate_output(output_file):
     except Exception as error:
         return False, f"Validation error: {error}"
 
+def write_log(message):
+
+    timestamp = datetime.now().strftime("%H:%M:%S")
+
+    with open(LOG_FILE, "a") as log:
+
+        log.write(
+            f"[{timestamp}] {message}\n"
+        )
+
 
 for file in os.listdir(INPUT_FOLDER):
 
@@ -108,6 +127,7 @@ for file in os.listdir(INPUT_FOLDER):
 
     print("\n" + "=" * 50)
     print(f"Processing: {file}")
+    write_log(f"Processing started: {file}")
     print("=" * 50)
 
     # Get video duration
@@ -149,6 +169,9 @@ for file in os.listdir(INPUT_FOLDER):
     print(f"Duration: {minutes:02d}:{seconds:02d}")
     print(f"Total parts: {total_parts}")
     print()
+    write_log(
+        f"{file} duration: {duration:.2f}s, parts: {total_parts}"
+    )
 
     success = True
     completed_parts = 0
@@ -178,7 +201,9 @@ for file in os.listdir(INPUT_FOLDER):
                     f"[{part}/{total_parts}] "
                     f"✓ Already exists — {message}"
                 )
-
+                write_log(
+                    f"{file} duration: {duration:.2f}s, parts: {total_parts}"
+                )
                 continue
 
             else:
@@ -304,6 +329,9 @@ for file in os.listdir(INPUT_FOLDER):
                 f"[Clip {part}/{total_parts}] "
                 f"✓ Completed — {message}"
             )
+            write_log(
+                f"{file} PART {part} completed"
+            )
 
             break
 
@@ -329,6 +357,9 @@ for file in os.listdir(INPUT_FOLDER):
 
         print()
         print(f"SUCCESS: {file}")
+        write_log(
+            f"SUCCESS: {file} completed"
+        )
         print(f"Created/verified {completed_parts} clips")
 
         os.rename(
@@ -344,6 +375,9 @@ for file in os.listdir(INPUT_FOLDER):
 
         print()
         print(f"FAILED: {file}")
+        write_log(
+            f"FAILED: {file}"
+        )
 
         # -------------------------------------------------
         # Remove partial output clips
