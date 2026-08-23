@@ -201,9 +201,6 @@ for file in os.listdir(INPUT_FOLDER):
                     f"[{part}/{total_parts}] "
                     f"✓ Already exists — {message}"
                 )
-                write_log(
-                    f"{file} duration: {duration:.2f}s, parts: {total_parts}"
-                )
                 continue
 
             else:
