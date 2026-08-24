@@ -3,7 +3,6 @@ import os
 import subprocess
 from datetime import datetime
 
-
 INPUT_FOLDER = "/Volumes/abcd/ai video automation data/input"
 OUTPUT_FOLDER = "/Volumes/abcd/ai video automation data/output"
 PROCESSED_FOLDER = "/Volumes/abcd/ai video automation data/processed"
