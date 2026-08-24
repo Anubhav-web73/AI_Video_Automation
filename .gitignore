@@ -17,3 +17,6 @@ __pycache__/
 main.py.stage4-*
 subtitle_test.py
 subtitle_test.srt
+
+module_test.srt
+subtitle_module_test.py
