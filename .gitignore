@@ -12,3 +12,8 @@ failed/
 
 __pycache__/
 *.pyc
+
+*.backup
+main.py.stage4-*
+subtitle_test.py
+subtitle_test.srt
